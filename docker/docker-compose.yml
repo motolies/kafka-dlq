@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  postrges:
+    image: postgres:15.3-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: testdb
+
   kafka:
     image: bitnami/kafka:3.9.0
     container_name: kafka
@@ -32,7 +43,6 @@ services:
 
       # --- 테스트용 : PLAINTEXT 리스너 허용 ---
       - ALLOW_PLAINTEXT_LISTENER=yes
-
     restart: unless-stopped
 
 
