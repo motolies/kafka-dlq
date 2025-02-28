@@ -1,0 +1,28 @@
+spring:
+  application.name: dlq
+  cloud:
+    function:
+      definition: normalMessage;dlqMessage;
+    stream:
+      default:
+        content-type: application/json
+        binder: kafka
+      bindings:
+        normalMessage-in-0:
+          destination: normalMessage-topic
+          group: normalMessage-group
+        dlqMessage-in-0:
+          destination: dlqMessage-topic
+          group: dlqMessage-group
+        sendMessage-out-0:
+          destination: normalMessage-topic
+      kafka:
+        bindings:
+          normalMessage-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: dlqMessage-topic
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+          autoAddPartitions: ${KAFKA_AUTO_ADD_PARTITION:false}
+          minPartitionCount: ${KAFKA_MIN_PARTITION_COUNT:1}
