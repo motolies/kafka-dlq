@@ -1,6 +1,6 @@
 package com.kafka.dlq.controller;
 
-import com.kafka.dlq.service.SendService;
+import com.kafka.dlq.service.StatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(path = "/cmd", produces = "application/json")
-public class CommandController {
+@RequestMapping(path = "/status", produces = "application/json")
+public class StatusController {
 
-  private final SendService sendService;
+  private final StatusService sendService;
 
   @GetMapping("/send")
   public ResponseEntity<?> send() {
@@ -22,7 +22,7 @@ public class CommandController {
     return ResponseEntity.ok().build();
   }
 
-  @GetMapping("/send/error")
+  @GetMapping("/error")
   public ResponseEntity<?> sendError() {
     sendService.send("error");
     return ResponseEntity.ok().build();

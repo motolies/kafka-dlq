@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  postrges:
+    image: postgres:15.3-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: testdb
+
   kafka:
     image: bitnami/kafka:3.9.0
     container_name: kafka
@@ -32,33 +43,45 @@ services:
 
       # --- 테스트용 : PLAINTEXT 리스너 허용 ---
       - ALLOW_PLAINTEXT_LISTENER=yes
-
     restart: unless-stopped
 
-
-  akhq:
-    image: tchiotludo/akhq:0.25.1
-    container_name: akhq
-    depends_on:
-      - kafka
+  kafbat-ui:
+    container_name: kafbat-ui
+    image: ghcr.io/kafbat/kafka-ui:v1.1.0
     ports:
       - "8081:8080"
+    depends_on:
+      - kafka
     environment:
-      AKHQ_CONFIGURATION: |
-        akhq:
-          connections:
-            local:
-              properties:
-                # 브로커가 INTERNAL 리스너로 광고하는 "kafka:9092"에 연결
-                bootstrap.servers: "kafka:29092"
-          server:
-            access-log: true
-            base-path: /
-          security:
-            default-group: admin
-        micronaut:
-          server:
-            port: 8080
-            cors:
-              enabled: true
+      DYNAMIC_CONFIG_ENABLED: 'true'
+      KAFKA_CLUSTERS_0_NAME: docker_kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
     restart: unless-stopped
+
+
+#  akhq:
+#    image: tchiotludo/akhq:0.25.1
+#    container_name: akhq
+#    depends_on:
+#      - kafka
+#    ports:
+#      - "8081:8080"
+#    environment:
+#      AKHQ_CONFIGURATION: |
+#        akhq:
+#          connections:
+#            local:
+#              properties:
+#                # 브로커가 INTERNAL 리스너로 광고하는 "kafka:9092"에 연결
+#                bootstrap.servers: "kafka:29092"
+#          server:
+#            access-log: true
+#            base-path: /
+#          security:
+#            default-group: admin
+#        micronaut:
+#          server:
+#            port: 8080
+#            cors:
+#              enabled: true
+#    restart: unless-stopped

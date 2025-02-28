@@ -5,17 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class TopicMessage {
+@SuperBuilder
+public class BaseMessage {
 
   @Builder.Default
   private String id = TSID.fast().toString();
   @Builder.Default
   private int retryCount = 0;
-  private String message;
 
 }

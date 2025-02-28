@@ -1,28 +1,38 @@
 spring:
   application.name: dlq
+  datasource:
+    url: jdbc:postgresql://localhost:5432/testdb
+    username: user
+    password: pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    open-in-view: false
   cloud:
     function:
-      definition: normalMessage;dlqMessage;
+      definition: statusUpdate;defaultDlq
     stream:
       default:
         content-type: application/json
         binder: kafka
       bindings:
-        normalMessage-in-0:
-          destination: normalMessage-topic
-          group: normalMessage-group
-        dlqMessage-in-0:
-          destination: dlqMessage-topic
-          group: dlqMessage-group
-        sendMessage-out-0:
-          destination: normalMessage-topic
+        defaultDlq-in-0:
+          destination: defaultDlq-topic-nwkim
+          group: defaultDlq-group
+        statusUpdate-in-0:
+          destination: statusUpdate-topic-nwkim
+          group: statusUpdate-group
+        status-out-0:
+          destination: statusUpdate-topic-nwkim
       kafka:
-        bindings:
-          normalMessage-in-0:
-            consumer:
-              enableDlq: true
-              dlqName: dlqMessage-topic
+        default:
+          consumer:
+            enableDlq: true
+            dlqName: defaultDlq-topic-nwkim
+            maxAttempts: 3 # 재시도 횟수
         binder:
           brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
           autoAddPartitions: ${KAFKA_AUTO_ADD_PARTITION:false}
-          minPartitionCount: ${KAFKA_MIN_PARTITION_COUNT:1}
+          minPartitionCount: ${KAFKA_MIN_PARTITION_COUNT:2}
