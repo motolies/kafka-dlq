@@ -24,6 +24,7 @@ public class StatusConsumer {
   public Consumer<StatusUpdateMessage> statusUpdate() {
     return message -> {
       if (message.getStatus().contains("error")) {
+        log.warn("Error occurred: {}", message);
         throw new RuntimeException("Error occurred");
       }
       log.debug("Received message: {}", message);

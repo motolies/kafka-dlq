@@ -36,7 +36,8 @@ spring:
           consumer:
             enableDlq: true
             dlqName: defaultDlq-topic
+            maxAttempts: 3 # 재시도 횟수
         binder:
           brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
           autoAddPartitions: ${KAFKA_AUTO_ADD_PARTITION:false}
-          minPartitionCount: ${KAFKA_MIN_PARTITION_COUNT:1}
+          minPartitionCount: ${KAFKA_MIN_PARTITION_COUNT:2}
