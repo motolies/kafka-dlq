@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Component
@@ -26,13 +27,13 @@ public class DefaultDlqConsumer {
   @Bean
   public Consumer<Message<String>> defaultDlq() {
     return message -> {
-      String originalTopic = IOUtils.toString((byte[]) message.getHeaders().get("x-original-topic"), String.valueOf(StandardCharsets.UTF_8));
-      String exceptionMessage = IOUtils.toString((byte[]) message.getHeaders().get("x-exception-message"), String.valueOf(StandardCharsets.UTF_8));
-      String exceptionStackTrace = IOUtils.toString((byte[]) message.getHeaders().get("x-exception-stacktrace"), String.valueOf(StandardCharsets.UTF_8));
+      String originalTopic = getStringValue(message, "x-original-topic", "anonymous-topic");
+      String exceptionMessage = getStringValue(message, "x-exception-message", null);
+      String exceptionStackTrace = getStringValue(message, "x-exception-stacktrace", null);
 
       BaseMessage baseMessage = null;
       try {
-        baseMessage = objectMapper.readValue(message.getPayload().toString(), BaseMessage.class);
+        baseMessage = objectMapper.readValue(message.getPayload(), BaseMessage.class);
       } catch (JsonProcessingException e) {
         throw new RuntimeException(e);
       }
@@ -47,5 +48,17 @@ public class DefaultDlqConsumer {
 
       log.warn("#### default DLQ from topic [{}] : {}", originalTopic, message.getPayload());
     };
+  }
+
+  private String getStringValue(Message<String> message, String headerName){
+    return getStringValue(message, headerName, null);
+  }
+
+  private String getStringValue(Message<String> message, String headerName, String defaultValue) {
+    byte[] bytesMessage = (byte[]) message.getHeaders().get(headerName);
+    if (bytesMessage == null) {
+      return StringUtils.hasText(defaultValue) ? defaultValue : null;
+    }
+    return IOUtils.toString(bytesMessage, String.valueOf(StandardCharsets.UTF_8));
   }
 }

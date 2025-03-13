@@ -1,5 +1,12 @@
 spring:
   application.name: dlq
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092} # spring cloud stream 사용시 dlq가 사용하는 kafkaTemplate 설정, stream 설정과 동일하게 설정해야함
+    default-dlq: # default dlq 설정
+      enableDlq: true
+      dlqName: defaultDlq-topic-template
+      maxAttempts: 0 # 재시도 횟수
+      retryInterval: 1000 # 재시도간 딜레이 (ms)
   datasource:
     url: jdbc:postgresql://localhost:5432/testdb
     username: user
@@ -19,19 +26,24 @@ spring:
         binder: kafka
       bindings:
         defaultDlq-in-0:
-          destination: defaultDlq-topic-nwkim
+          destination: defaultDlq-topic-template
           group: defaultDlq-group
         statusUpdate-in-0:
-          destination: statusUpdate-topic-nwkim
+          destination: statusUpdate-topic
           group: statusUpdate-group
         status-out-0:
-          destination: statusUpdate-topic-nwkim
+          destination: statusUpdate-topic
       kafka:
-        default:
-          consumer:
-            enableDlq: true
-            dlqName: defaultDlq-topic-nwkim
-            maxAttempts: 3 # 재시도 횟수
+        bindings:
+          statusUpdate-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: statusUpdate-dlq-only
+#        default: # stream 기본 바인딩 dlq 설정
+#          consumer:
+#            enableDlq: true
+#            dlqName: defaultDlq-topic-stream
+#            maxAttempts: 3 # 재시도 횟수
         binder:
           brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
           autoAddPartitions: ${KAFKA_AUTO_ADD_PARTITION:false}
